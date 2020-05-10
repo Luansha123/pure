@@ -109,10 +109,20 @@ public class ThreadCommunication {
 
         }
         new Thread(() -> {
-            for (int i = 0; i < 2; i++) {
-                cfo.wakeup();
+            for (int i = 0; i < 10; i++) {
+                cfo.printA();
             }
         }, "A").start();
+        new Thread(() -> {
+            for (int i = 0; i < 10; i++) {
+                cfo.printB();
+            }
+        }, "B").start();
+        new Thread(() -> {
+            for (int i = 0; i < 10; i++) {
+                cfo.printC();
+            }
+        }, "C").start();
 //        new Thread(() -> {
 //            for (int i = 0; i < 10; i++) {
 //                cfo.wakeup();
@@ -209,10 +219,16 @@ class ClazzForOrder {
     Condition condition2 = lock.newCondition();
     Condition condition3 = lock.newCondition();
 
-    public void wakeup() {
+    public void printA(){
         lock.lock();
         try {
+            while(!"A".equals(name)){
+                condition1.await();
+            }
+            System.out.println("AAAAAAAAAA");
 
+            name = "B";
+            condition2.signal();
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -220,7 +236,37 @@ class ClazzForOrder {
         }
     }
 
-    public void printA(){
-        while()
+    public void printB(){
+        lock.lock();
+        try {
+            while(!"B".equals(name)){
+                condition2.await();
+            }
+            System.out.println("BBBBBBBBBBBB");
+
+            name = "C";
+            condition3.signal();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public void printC(){
+        lock.lock();
+        try{
+            while(!"C".equals(name)){
+                condition3.await();
+            }
+            System.out.println("CCCCCCCCCC");
+
+            name = "A";
+            condition1.signal();
+        }catch(Exception e){
+            e.printStackTrace();
+        }finally{
+
+        }
     }
 }
